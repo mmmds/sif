@@ -22,14 +22,14 @@
 	do { fprintf(stderr, "%s" fmt "\n", "[SIF][Error] ", __VA_ARGS__); } while (0)
 
 
-static int (*sf_bind)(int socket, const struct sockaddr *address, socklen_t address_len) = NULL;
-static int (*sf_socket)(int domain, int type, int protocol) = NULL;
-static int (*sf_connect)(int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
-static ssize_t (*sf_sendto)(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen) = NULL;
-static ssize_t (*sf_write)(int fd, const void *buf, size_t count) = NULL;
-static ssize_t (*sf_send)(int sockfd, const void *buf, size_t len, int flags) = NULL;
-static ssize_t (*sf_sendmsg)(int sockfd, const struct msghdr *msg, int flags) = NULL;
-static ssize_t (*sf_recvfrom)(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen);
+static int (*sif_bind)(int socket, const struct sockaddr *address, socklen_t address_len) = NULL;
+static int (*sif_socket)(int domain, int type, int protocol) = NULL;
+static int (*sif_connect)(int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
+static ssize_t (*sif_sendto)(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen) = NULL;
+static ssize_t (*sif_write)(int fd, const void *buf, size_t count) = NULL;
+static ssize_t (*sif_send)(int sockfd, const void *buf, size_t len, int flags) = NULL;
+static ssize_t (*sif_sendmsg)(int sockfd, const struct msghdr *msg, int flags) = NULL;
+static ssize_t (*sif_recvfrom)(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen);
 
 static int INIT = 0;
 static time_t START_TIME;
@@ -211,11 +211,11 @@ static void try_init(void) {
 int socket(int domain, int type, int protocol) {
 	try_init();
 
-	if (sf_socket == NULL) {
-		sf_socket = dlsym(RTLD_NEXT, "socket");
+	if (sif_socket == NULL) {
+		sif_socket = dlsym(RTLD_NEXT, "socket");
 	}
 
-	int s = sf_socket(domain, type, protocol);
+	int s = sif_socket(domain, type, protocol);
 	sif_debug("new socket (%d)", s);
 
 	return s;
@@ -224,11 +224,11 @@ int socket(int domain, int type, int protocol) {
 int bind(int socket, const struct sockaddr *address, socklen_t address_len) {
 	try_init();
 
-	if (sf_bind == NULL) {
-		sf_bind = dlsym(RTLD_NEXT, "bind");
+	if (sif_bind == NULL) {
+		sif_bind = dlsym(RTLD_NEXT, "bind");
 	}
 
-	int r = sf_bind(socket, address, address_len);
+	int r = sif_bind(socket, address, address_len);
 	sif_debug("binding socket (%d) to port (%u)", socket, htons(((struct sockaddr_in*)address)->sin_port));
 	
 	return r;
@@ -237,11 +237,11 @@ int bind(int socket, const struct sockaddr *address, socklen_t address_len) {
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 	try_init();
 
-	if (sf_connect == NULL) {
-		sf_connect = dlsym(RTLD_NEXT, "connect");
+	if (sif_connect == NULL) {
+		sif_connect = dlsym(RTLD_NEXT, "connect");
 	}
 
-	int c = sf_connect(sockfd, addr, addrlen);
+	int c = sif_connect(sockfd, addr, addrlen);
 	struct sockaddr_in* addrin = (struct sockaddr_in*)addr;
 	char *s = malloc(INET_ADDRSTRLEN);
         inet_ntop(AF_INET, &(addrin->sin_addr), s, INET_ADDRSTRLEN);
@@ -254,8 +254,8 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 ssize_t sendto(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen) {
 	try_init();
 
-	if (sf_sendto == NULL) {
-		sf_sendto = dlsym(RTLD_NEXT, "sendto");
+	if (sif_sendto == NULL) {
+		sif_sendto = dlsym(RTLD_NEXT, "sendto");
 	}
 
 	int fuzz_decision = 0;
@@ -306,14 +306,14 @@ ssize_t sendto(int sockfd, const void *buf, size_t len, int flags, const struct 
 		int i = 0;
 		for (int max = REPEAT + 1; i < max; i++) {
 			int n = radamsa((uint8_t*) buf, len, (uint8_t*) out, BUFSIZE, seed++);
-			ssize_t r = sf_sendto(sockfd, out, n, flags, dest_addr, addrlen);
+			ssize_t r = sif_sendto(sockfd, out, n, flags, dest_addr, addrlen);
 		}
 		if (VERBOSE && dest_addr->sa_family == AF_INET) {
 			sif_debug("sendto (socket=%d, fuzzed=%d, ip=%s:%d)", sockfd, i-1, inet_ntoa(((struct sockaddr_in*)dest_addr)->sin_addr), htons(((struct sockaddr_in*)dest_addr)->sin_port));
 		}
 		free(out);
 	} else {
-		return sf_sendto(sockfd, buf, len, flags, dest_addr, addrlen);
+		return sif_sendto(sockfd, buf, len, flags, dest_addr, addrlen);
 	}
 	
 	return len;
@@ -322,11 +322,11 @@ ssize_t sendto(int sockfd, const void *buf, size_t len, int flags, const struct 
 ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen) {
 	try_init();
 
-	if (sf_recvfrom == NULL) {
-		sf_recvfrom = dlsym(RTLD_NEXT, "recvfrom");
+	if (sif_recvfrom == NULL) {
+		sif_recvfrom = dlsym(RTLD_NEXT, "recvfrom");
 	}
 
-	ssize_t r = sf_recvfrom(sockfd, buf, len, flags, src_addr, addrlen);
+	ssize_t r = sif_recvfrom(sockfd, buf, len, flags, src_addr, addrlen);
 	
 	if (DUMP && r > 0) {
 		int offset = 0;
