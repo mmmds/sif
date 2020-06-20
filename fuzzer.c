@@ -16,7 +16,10 @@
 #include <sys/socket.h>
 
 #define sif_debug(fmt, ...) \
-	do { if (VERBOSE) fprintf(stderr, "%s" fmt "\n", "[SIF][Info] ", __VA_ARGS__); } while (0)
+	do { if (VERBOSE) fprintf(stderr, "%s" fmt "\n", "[SIF][Debug] ", __VA_ARGS__); } while (0)
+
+#define sif_print(fmt, ...) \
+	do { fprintf(stderr, "%s" fmt "\n", "[SIF][Info] ", __VA_ARGS__); } while (0)
 
 #define sif_error(fmt, ...) \
 	do { fprintf(stderr, "%s" fmt "\n", "[SIF][Error] ", __VA_ARGS__); } while (0)
@@ -101,6 +104,17 @@ static unsigned short* TARGET_PORT = NULL;
 static unsigned int seed;
 
 
+static void create_dump_output(char* location) {
+	char* path = malloc(strlen(location) + 1 + (2*19) + 1);// long = 19 digits
+	pid_t pid = getpid();
+	sprintf(path, "%s.%d.%ld", location, pid, START_TIME);
+	DUMP_FILE = fopen(path, "w");
+	if (DUMP_FILE == NULL) {
+		sif_error("Cannot create dump output file = %s", path);
+		exit(-1);
+	}
+	free(path);
+}
 static void parse_options(char* options) {
 	seed = rand();
 	TARGET_IP = malloc(sizeof(*TARGET_IP));
@@ -111,59 +125,53 @@ static void parse_options(char* options) {
 
 	char* token = strtok(options, ":");
 	char* value = NULL;
-
+	
+	sif_print("%s = %s", token, value);
 	while (token != NULL) {
 		value = strchr(token, '=');
 		if (value != NULL) {
 			*value++ = '\0';
-			if (strcmp(token, "verbose"))
+			sif_debug("%s = %s", token, value);
+			if (!strcmp(token, "verbose"))
 			{
 				int decision = strtol(value, NULL, 0);
 				VERBOSE = decision ? 1 : 0;
 			}
-			else if (strcmp(token, "fuzz")) 
+			else if (!strcmp(token, "fuzz")) 
 			{
 				int decision = strtol(value, NULL, 0);
 				FUZZ = decision ? 1 : 0;
 			}
-			else if (strcmp(token, "dump"))
+			else if (!strcmp(token, "dump"))
 			{
 				int decision = strtol(value, NULL, 0);
 				DUMP = decision ? 1 : 0;
 			}
-			else if (strcmp(token, "dump_output"))
+			else if (!strcmp(token, "dump_output"))
 			{
-				char* path = malloc(strlen(value) + 1 + (2*19) + 1);// long = 19 digits
-				pid_t pid = getpid();
-				sprintf(path, "%s.%d.%ld", value, pid, START_TIME);
-				DUMP_FILE = fopen(path, "w");
-				if (DUMP_FILE == NULL) {
-					sif_error("Cannot create dump output file = %s", path);
-					exit(-1);
-				}
-				free(path);
+				create_dump_output(value);
 			}
-			else if (strcmp(token, "seed"))
+			else if (!strcmp(token, "seed"))
 			{
 				seed = strtoul(value, NULL, 0);
 			} 
-			else if (strcmp(token, "skip"))
+			else if (!strcmp(token, "skip"))
 			{
 				SKIP = strtol(value, NULL, 0);
 			} 
-			else if (strcmp(token, "repeat"))
+			else if (!strcmp(token, "repeat"))
 			{
 				REPEAT = strtoul(value, NULL, 0);
 			}
-			else if (strcmp(token, "wait"))
+			else if (!strcmp(token, "wait"))
 			{
 				WAIT = strtol(value, NULL, 0);
 			}
-			else if (strcmp(token, "switch_file"))
+			else if (!strcmp(token, "switch_file"))
 			{
 				SWITCH_FILE = strdup(value);
 			}
-			else if (strcmp(token, "target_ip"))
+			else if (!strcmp(token, "target_ip"))
 			{
 				TARGET_IP = malloc(sizeof(*TARGET_IP));
 				if (!inet_pton(AF_INET, value, TARGET_IP)) {
@@ -171,13 +179,13 @@ static void parse_options(char* options) {
 					exit(-1);
 				}
 			}
-			else if (strcmp(token, "target_port"))
+			else if (!strcmp(token, "target_port"))
 			{
 				TARGET_PORT = malloc(sizeof(*TARGET_PORT));
 				unsigned short port = strtoul(value, NULL, 0);
 				*TARGET_PORT = htons(port);
 			}
-			else if (strcmp(token, "chance"))
+			else if (!strcmp(token, "chance"))
 			{
 				int chance = strtoul(value, NULL, 0);
 				if (chance >= CHANCE_MIN && chance <= CHANCE_MAX) {
@@ -186,6 +194,10 @@ static void parse_options(char* options) {
 			}
 		}
 		token = strtok(NULL, ":");
+	}
+
+	if (DUMP_FILE == NULL && DUMP) {
+		create_dump_output("dump");
 	}
 }
 
@@ -309,7 +321,7 @@ ssize_t sendto(int sockfd, const void *buf, size_t len, int flags, const struct 
 			ssize_t r = sif_sendto(sockfd, out, n, flags, dest_addr, addrlen);
 		}
 		if (VERBOSE && dest_addr->sa_family == AF_INET) {
-			sif_debug("sendto (socket=%d, fuzzed=%d, ip=%s:%d)", sockfd, i-1, inet_ntoa(((struct sockaddr_in*)dest_addr)->sin_addr), htons(((struct sockaddr_in*)dest_addr)->sin_port));
+			sif_debug("sendto (socket=%d, fuzzed=%d, ip=%s:%d)", sockfd, i, inet_ntoa(((struct sockaddr_in*)dest_addr)->sin_addr), htons(((struct sockaddr_in*)dest_addr)->sin_port));
 		}
 		free(out);
 	} else {
