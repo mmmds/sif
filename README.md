@@ -19,5 +19,5 @@ $ gcc -I`pwd`/radamsa/c -fPIC -shared -o fuzzer.o fuzzer.c radamsa/lib/libradams
 
 ### Use
 ```
-LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libasan.so.4 /home/mmm/socketfuzzer/fuzzer.o" ./<app>
+LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libasan.so.4 /home/mmm/sif/fuzzer.o" ./<app>
 ```
