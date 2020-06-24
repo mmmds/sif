@@ -40,6 +40,10 @@ Example usage:
 SIF_OPTIONS="fuzz=1:verbose=1:dump=1:dump_output=../:seed=123:skip=5:repeat=10:wait=3:switch_file=../1.switch:target_ip=127.0.0.1:target_port=80:chance=50" LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libasan.so.4 /home/mmm/sif/fuzzer.o" ./<app>
 ```
 
+## TODO
+- [x] hook `sendto`
+- [ ] hook `send`, `write`
+
 ## Findings
 - Chocolate Doom, Crispy Doom
   - https://github.com/chocolate-doom/chocolate-doom/issues/1292 ([CVE-2020-14983](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-14983))
