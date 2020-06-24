@@ -35,7 +35,7 @@ LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libasan.so.4 /home/mmm/sif/fuzzer.o" ./<ap
 - `target_port` - fuzz only given port (all ports if not set)
 - `chance` - chance 1-100 for fuzzing a packet (default `100`)
 
-- Example usage:
+Example usage:
 ```
 SIF_OPTIONS="fuzz=1:verbose=1:dump=1:dump_output=../:seed=123:skip=5:repeat=10:wait=3:switch_file=../1.switch:target_ip=127.0.0.1:target_port=80:chance=50" LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libasan.so.4 /home/mmm/sif/fuzzer.o" ./<app>
 ```
