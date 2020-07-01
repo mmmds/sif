@@ -43,6 +43,7 @@ SIF_OPTIONS="fuzz=1:verbose=1:dump=1:dump_output=../:seed=123:skip=5:repeat=10:w
 ## TODO
 - [x] hook `sendto`
 - [ ] hook `send`, `write`
+- [ ] error handling
 
 ## Findings
 - Chocolate Doom, Crispy Doom
