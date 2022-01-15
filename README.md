@@ -47,8 +47,9 @@ SIF_OPTIONS="fuzz=1:verbose=1:dump=1:dump_output=../:seed=123:skip=5:repeat=10:w
 
 ## Findings
 - Chocolate Doom, Crispy Doom
-  - https://github.com/chocolate-doom/chocolate-doom/issues/1292 ([CVE-2020-14983](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-14983))
-  - https://github.com/chocolate-doom/chocolate-doom/issues/1293
+  - https://github.com/chocolate-doom/chocolate-doom/issues/1292
+  - https://github.com/chocolate-doom/chocolate-doom/issues/1293 ([CVE-2020-14983](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-14983))
+
 - Teeworlds
   - https://github.com/teeworlds/teeworlds/issues/2642
   - https://github.com/teeworlds/teeworlds/issues/2643
